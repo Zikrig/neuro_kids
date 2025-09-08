@@ -1,10 +1,10 @@
 import logging
 from aiogram import Bot, Dispatcher
-from config import BOT_TOKEN
-from handlers.menu import router as menu_router
-from handlers.services import router as services_router
-from handlers.mult_table import router as mult_table_router
-from handlers.online import router as online_router
+from app.config import BOT_TOKEN
+from app.handlers.menu import router as menu_router
+from app.handlers.services import router as services_router
+from app.handlers.mult_table import router as mult_table_router
+from app.handlers.online import router as online_router
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)

@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, FSInputFile
-from keyboards import main_menu_keyboard
+from app.keyboards import main_menu_keyboard
 import os
 import json
 from aiogram.filters import Command
@@ -11,11 +11,11 @@ ADMIN_ID = 184374602  # Замените на свой Telegram user_id
 router = Router()
 
 def load_texts():
-    with open("texts.json", encoding="utf-8") as f:
+    with open("data/texts.json", encoding="utf-8") as f:
         return json.load(f)
 
 def save_texts(texts):
-    with open("texts.json", "w", encoding="utf-8") as f:
+    with open("data/texts.json", "w", encoding="utf-8") as f:
         json.dump(texts, f, ensure_ascii=False, indent=2)
 
 texts = load_texts()

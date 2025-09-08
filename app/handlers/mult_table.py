@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from keyboards import mult_table_branches_keyboard, main_menu_keyboard
-from services import MULT_TABLE_BRANCHES
-from states import MultTableForm
+from app.keyboards import mult_table_branches_keyboard, main_menu_keyboard
+from app.services import MULT_TABLE_BRANCHES
+from app.states import MultTableForm
 
 router = Router()
 

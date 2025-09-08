@@ -1,8 +1,8 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
-from keyboards import main_menu_keyboard
-from services import ONLINE_DETAILS
+from app.keyboards import main_menu_keyboard
+from app.services import ONLINE_DETAILS
 import os
 
 router = Router()

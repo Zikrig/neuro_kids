@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from keyboards import services_keyboard, branches_keyboard, main_menu_keyboard
-from services import SERVICE_DETAILS, BRANCHES
-from states import Form
+from app.keyboards import services_keyboard, branches_keyboard, main_menu_keyboard
+from app.services import SERVICE_DETAILS, BRANCHES
+from app.states import Form
 
 router = Router()
 
@@ -77,7 +77,7 @@ async def process_branch(callback: CallbackQuery, state: FSMContext):
     await complete_appointment(callback, state)
 
 async def complete_appointment(callback: CallbackQuery, state: FSMContext):
-    from services import SERVICE_DETAILS
+    from app.services import SERVICE_DETAILS
     data = await state.get_data()
     service_value = SERVICE_DETAILS.get(data.get('service'), {}).get('title', data.get('service'))
     await callback.message.edit_text(
