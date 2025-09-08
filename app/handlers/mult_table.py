@@ -10,7 +10,7 @@ router = Router()
 @router.callback_query(F.data == "appoint_mult_table")
 async def start_mult_table_appointment(callback: CallbackQuery, state: FSMContext):
     await state.set_state(MultTableForm.name)
-    await callback.message.edit_text("Ваше имя:")
+    await callback.message.answer("Ваше имя:")
 
 @router.message(MultTableForm.name)
 async def mult_table_name(message, state: FSMContext):
@@ -38,7 +38,7 @@ async def mult_table_branch(callback: CallbackQuery, state: FSMContext):
 
 async def complete_mult_table_appointment(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    await callback.message.edit_text(
+    await callback.message.answer(
         f"Спасибо за заявку, {data.get('name', '')}!\n"
         f"Мы свяжемся с вами в ближайшее время\n\n"
         f"Данные для отправки в CRM:\n"

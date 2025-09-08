@@ -4,12 +4,13 @@ from aiogram.fsm.context import FSMContext
 from app.keyboards import services_keyboard, branches_keyboard, main_menu_keyboard
 from app.services import SERVICE_DETAILS, BRANCHES
 from app.states import Form
+import re
 
 router = Router()
 
 @router.callback_query(F.data == "services")
 async def show_services(callback: CallbackQuery):
-    await callback.message.edit_text(
+    await callback.message.answer(
         "<b>НАШИ УСЛУГИ И ЦЕНЫ</b>\n\nВыберите услугу:",
         reply_markup=services_keyboard(),
         parse_mode="HTML"
@@ -45,28 +46,50 @@ async def service_detail(callback: CallbackQuery, state: FSMContext):
         )
     await callback.message.delete()
 
-@router.callback_query(F.data.startswith("appoint"))
+@router.callback_query(F.data.startswith("appoint_"))
 async def start_appointment(callback: CallbackQuery, state: FSMContext):
     data = callback.data.split("_", 1)[1]
     await state.update_data(service=data)
     await state.set_state(Form.name)
-    await callback.message.edit_text("Ваше имя:")
+    await callback.message.answer("Ваше имя:")
 
+@router.callback_query(F.data == "appointment")
+async def appointment_start(callback: CallbackQuery, state: FSMContext):
+    await state.update_data(service="appointment")
+    await state.set_state(Form.name)
+    await callback.message.answer("Ваше имя:")
+    
+    
 @router.message(Form.name)
 async def process_name(message, state: FSMContext):
-    await state.update_data(name=message.text)
+    # Проверка: только буквы, минимум 2 символа
+    if not re.match(r"^[А-Яа-яA-Za-zЁё\-\s]{2,}$", message.text.strip()):
+        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).")
+        return
+    await state.update_data(name=message.text.strip())
     await state.set_state(Form.phone)
     await message.answer("Ваш контактный телефон:")
 
 @router.message(Form.phone)
 async def process_phone(message, state: FSMContext):
-    await state.update_data(phone=message.text)
+    phone = re.sub(r"[^0-9]", "", message.text)
+    if not (10 <= len(phone) <= 12):
+        await message.answer("Пожалуйста, введите корректный номер телефона.")
+        return
+    await state.update_data(phone=message.text.strip())
     await state.set_state(Form.age)
     await message.answer("Возраст ребенка (полных лет):")
 
 @router.message(Form.age)
 async def process_age(message, state: FSMContext):
-    await state.update_data(age=message.text)
+    try:
+        age = int(message.text.strip())
+        if not (1 <= age < 25):
+            raise ValueError
+    except ValueError:
+        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.")
+        return
+    await state.update_data(age=age)
     await state.set_state(Form.branch)
     await message.answer("Выберите удобный филиал:", reply_markup=branches_keyboard())
 
@@ -80,7 +103,7 @@ async def complete_appointment(callback: CallbackQuery, state: FSMContext):
     from app.services import SERVICE_DETAILS
     data = await state.get_data()
     service_value = SERVICE_DETAILS.get(data.get('service'), {}).get('title', data.get('service'))
-    await callback.message.edit_text(
+    await callback.message.answer(
         f"Спасибо за заявку, {data.get('name', '')}!\n"
         f"Мы свяжемся с вами в ближайшее время\n\n"
         f"Данные для отправки в CRM:\n"
