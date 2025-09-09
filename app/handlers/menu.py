@@ -169,15 +169,15 @@ async def mult_table_phone(message: Message, state):
 
 @router.message(StateFilter("mult_table_age"))
 async def mult_table_age(message: Message, state):
-    # Проверка: только число, 1-24
+    # Проверка: только число, 1-18
     try:
         age = int(message.text.strip())
-        if not (1 <= age < 25):
+        if not (1 <= age < 18):
             raise ValueError
     except ValueError:
         cancel_kb = InlineKeyboardBuilder()
         cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.", reply_markup=cancel_kb.as_markup())
+        await message.answer("Пожалуйста, введите возраст от 1 до 17 лет.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(age=age)
     await state.set_state("mult_table_branch")
@@ -262,10 +262,10 @@ async def admin_choose_service(callback: CallbackQuery, state: FSMContext):
         text="Название",
         callback_data="admin_field_title"
     ))
-    builder.add(InlineKeyboardButton(
-        text="Изображение",
-        callback_data="admin_field_image"
-    ))
+    # builder.add(InlineKeyboardButton(
+    #     text="Изображение",
+    #     callback_data="admin_field_image"
+    # ))
     builder.add(InlineKeyboardButton(
         text="Описание",
         callback_data="admin_field_desc"

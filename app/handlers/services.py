@@ -5,6 +5,7 @@ from app.keyboards import services_keyboard, branches_keyboard, main_menu_keyboa
 from app.services import SERVICE_DETAILS, BRANCHES
 from app.states import Form
 import re
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 router = Router()
 
@@ -51,53 +52,72 @@ async def start_appointment(callback: CallbackQuery, state: FSMContext):
     data = callback.data.split("_", 1)[1]
     await state.update_data(service=data)
     await state.set_state(Form.name)
-    await callback.message.answer("Ваше имя:")
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
 
 @router.callback_query(F.data == "appointment")
 async def appointment_start(callback: CallbackQuery, state: FSMContext):
     await state.update_data(service="appointment")
     await state.set_state(Form.name)
-    await callback.message.answer("Ваше имя:")
-    
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
     
 @router.message(Form.name)
 async def process_name(message, state: FSMContext):
     # Проверка: только буквы, минимум 2 символа
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
     if not re.match(r"^[А-Яа-яA-Za-zЁё\-\s]{2,}$", message.text.strip()):
-        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).")
+        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(name=message.text.strip())
     await state.set_state(Form.phone)
-    await message.answer("Ваш контактный телефон:")
+    await message.answer("Ваш контактный телефон:", reply_markup=cancel_kb.as_markup())
 
 @router.message(Form.phone)
 async def process_phone(message, state: FSMContext):
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
     phone = re.sub(r"[^0-9]", "", message.text)
     if not (10 <= len(phone) <= 12):
-        await message.answer("Пожалуйста, введите корректный номер телефона.")
+        await message.answer("Пожалуйста, введите корректный номер телефона.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(phone=message.text.strip())
     await state.set_state(Form.age)
-    await message.answer("Возраст ребенка (полных лет):")
+    await message.answer("Возраст ребенка (полных лет):", reply_markup=cancel_kb.as_markup())
 
 @router.message(Form.age)
 async def process_age(message, state: FSMContext):
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
     try:
         age = int(message.text.strip())
         if not (1 <= age < 25):
             raise ValueError
     except ValueError:
-        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.")
+        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(age=age)
     await state.set_state(Form.branch)
     await message.answer("Выберите удобный филиал:", reply_markup=branches_keyboard())
+    await message.answer("Для отмены нажмите кнопку ниже.", reply_markup=cancel_kb.as_markup())
 
 @router.callback_query(Form.branch, F.data.startswith("branch_"))
 async def process_branch(callback: CallbackQuery, state: FSMContext):
     branch_index = int(callback.data.split("_", 1)[1])
     await state.update_data(branch=BRANCHES[branch_index])
     await complete_appointment(callback, state)
+
+@router.callback_query(F.data == "cancel_form")
+async def cancel_form(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("Запись отменена.", reply_markup=main_menu_keyboard())
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
 
 async def complete_appointment(callback: CallbackQuery, state: FSMContext):
     from app.services import SERVICE_DETAILS
