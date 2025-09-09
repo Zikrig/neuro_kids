@@ -120,82 +120,10 @@ async def get_guide(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
 
 @router.callback_query(F.data == "appoint_mult_table")
-async def start_mult_table_appointment(callback: CallbackQuery, state):
-    await state.set_state("mult_table_name")
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
-
-@router.message(StateFilter("mult_table_name"))
-async def mult_table_name(message: Message, state):
-    # Проверка: только буквы, минимум 2 символа
-    if not re.match(r"^[А-Яа-яA-Za-zЁё\-\s]{2,}$", message.text.strip()):
-        cancel_kb = InlineKeyboardBuilder()
-        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(name=message.text.strip())
-    await state.set_state("mult_table_phone")
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await message.answer("Ваш контактный телефон:", reply_markup=cancel_kb.as_markup())
-
-@router.message(StateFilter("mult_table_phone"))
-async def mult_table_phone(message: Message, state):
-    # Простейшая проверка на телефон (11 цифр, допускается +7, 8, пробелы, дефисы)
-    phone = re.sub(r"[^0-9]", "", message.text)
-    if not (10 <= len(phone) <= 12):
-        cancel_kb = InlineKeyboardBuilder()
-        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-        await message.answer("Пожалуйста, введите корректный номер телефона.", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(phone=message.text.strip())
-    await state.set_state("mult_table_age")
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await message.answer("Возраст ребенка (полных лет):", reply_markup=cancel_kb.as_markup())
-
-@router.message(StateFilter("mult_table_age"))
-async def mult_table_age(message: Message, state):
-    # Проверка: только число, 2-16
-    try:
-        age = int(message.text.strip())
-        if not (2 <= age <= 16):
-            raise ValueError
-    except ValueError:
-        cancel_kb = InlineKeyboardBuilder()
-        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-        await message.answer("Пожалуйста, введите возраст от 2 до 16 лет.", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(age=age)
-    await state.set_state("mult_table_branch")
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await message.answer("Выберите удобный филиал в г. Москва:", reply_markup=mult_table_branches_keyboard())
-    await message.answer("Для отмены нажмите кнопку ниже.", reply_markup=cancel_kb.as_markup())
-
-@router.callback_query(StateFilter("mult_table_branch"), F.data.startswith("mult_branch_"))
-async def mult_table_branch(callback: CallbackQuery, state):
-    branch_index = int(callback.data.split("_", 2)[2])
-    branches = ["Отрадное (Москва)", "Молодежная (Москва)"]
-    await state.update_data(branch=branches[branch_index])
-    data = await state.get_data()
-    await callback.message.answer(
-        f"Спасибо за заявку, {data.get('name', '')}!\n"
-        f"Мы свяжемся с вами в ближайшее время\n\n"
-        f"Данные для отправки в CRM:\n"
-        f"Услуга: ТАБЛИЦА УМНОЖЕНИЯ ЗА 5 ДНЕЙ\n"
-        f"Телефон: {data.get('phone', '')}\n"
-        f"Возраст ребенка: {data.get('age', '')}\n"
-        f"Филиал: {data.get('branch', '')}",
-        reply_markup=main_menu_keyboard()
-    )
-    await state.clear()
-
-@router.callback_query(F.data == "cancel_form")
-async def cancel_form(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.answer("Запись отменена.", reply_markup=main_menu_keyboard())
+async def appoint_mult_table_link(callback: CallbackQuery, state: FSMContext):
+    url = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
+    text = 'Для записи воспользуйтесь <a href="{}">формой</a>.'
+    await callback.message.answer(text.format(url), parse_mode="HTML", reply_markup=main_menu_keyboard())
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:
