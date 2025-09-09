@@ -204,9 +204,9 @@ async def cancel_form(callback: CallbackQuery, state: FSMContext):
 # --- Админский режим ---
 @router.message(Command("admin"))
 async def admin_services(message: Message, state: FSMContext):
-    if message.from_user.id not in ADMIN_IDS:
-        await message.answer("Нет доступа.")
-        return
+    # if message.from_user.id not in ADMIN_IDS:
+    #     await message.answer("Нет доступа.")
+    #     return
     
     service_data = load_service_data()
     service_details = service_data.get('service_details', {})

@@ -49,88 +49,16 @@ async def service_detail(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("appoint_"))
 async def start_appointment(callback: CallbackQuery, state: FSMContext):
-    data = callback.data.split("_", 1)[1]
-    await state.update_data(service=data)
-    await state.set_state(Form.name)
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
+    await callback.message.answer(
+        "Для записи, пожалуйста, перейдите по ссылке:\n"
+        "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css",
+        disable_web_page_preview=False
+    )
 
 @router.callback_query(F.data == "appointment")
 async def appointment_start(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(service="appointment")
-    await state.set_state(Form.name)
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
-    
-@router.message(Form.name)
-async def process_name(message, state: FSMContext):
-    # Проверка: только буквы, минимум 2 символа
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    if not re.match(r"^[А-Яа-яA-Za-zЁё\-\s]{2,}$", message.text.strip()):
-        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(name=message.text.strip())
-    await state.set_state(Form.phone)
-    await message.answer("Ваш контактный телефон:", reply_markup=cancel_kb.as_markup())
-
-@router.message(Form.phone)
-async def process_phone(message, state: FSMContext):
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    phone = re.sub(r"[^0-9]", "", message.text)
-    if not (10 <= len(phone) <= 12):
-        await message.answer("Пожалуйста, введите корректный номер телефона.", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(phone=message.text.strip())
-    await state.set_state(Form.age)
-    await message.answer("Возраст ребенка (полных лет):", reply_markup=cancel_kb.as_markup())
-
-@router.message(Form.age)
-async def process_age(message, state: FSMContext):
-    cancel_kb = InlineKeyboardBuilder()
-    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-    try:
-        age = int(message.text.strip())
-        if not (2 <= age <= 16):
-            raise ValueError
-    except ValueError:
-        await message.answer("Пожалуйста, введите возраст от 2 до 16 лет.", reply_markup=cancel_kb.as_markup())
-        return
-    await state.update_data(age=age)
-    await state.set_state(Form.branch)
-    await message.answer("Выберите удобный филиал:", reply_markup=branches_keyboard())
-    await message.answer("Для отмены нажмите кнопку ниже.", reply_markup=cancel_kb.as_markup())
-
-@router.callback_query(Form.branch, F.data.startswith("branch_"))
-async def process_branch(callback: CallbackQuery, state: FSMContext):
-    branch_index = int(callback.data.split("_", 1)[1])
-    await state.update_data(branch=BRANCHES[branch_index])
-    await complete_appointment(callback, state)
-
-@router.callback_query(F.data == "cancel_form")
-async def cancel_form(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.answer("Запись отменена.", reply_markup=main_menu_keyboard())
-    try:
-        await callback.message.edit_reply_markup(reply_markup=None)
-    except Exception:
-        pass
-
-async def complete_appointment(callback: CallbackQuery, state: FSMContext):
-    from app.services import SERVICE_DETAILS
-    data = await state.get_data()
-    service_value = SERVICE_DETAILS.get(data.get('service'), {}).get('title', data.get('service'))
     await callback.message.answer(
-        f"Спасибо за заявку, {data.get('name', '')}!\n"
-        f"Мы свяжемся с вами в ближайшее время\n\n"
-        f"Данные для отправки в CRM:\n"
-        f"Услуга: {service_value}\n"
-        f"Телефон: {data.get('phone', '')}\n"
-        f"Возраст ребенка: {data.get('age', '')}\n"
-        f"Филиал: {data.get('branch', '')}",
-        reply_markup=main_menu_keyboard()
+        "Для записи, пожалуйста, перейдите по ссылке:\n"
+        "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css",
+        disable_web_page_preview=False
     )
-    await state.clear()
