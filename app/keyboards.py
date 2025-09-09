@@ -19,7 +19,7 @@ def services_keyboard():
         # Исключаем онлайн и таблицу умножения из списка услуг для пользователей
         if key in ["online", "mult_table"]:
             continue
-        builder.button(text=value.split(" - ", 1)[0], callback_data=f"service_{key}")
+        builder.button(text='✅' + value.split(" - ", 1)[0].upper(), callback_data=f"service_{key}")
     builder.button(text="↩️ Назад", callback_data="back_menu")
     builder.adjust(1)
     return builder.as_markup()
