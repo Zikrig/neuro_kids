@@ -7,6 +7,7 @@ import os
 import json
 from aiogram.filters import Command, StateFilter
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+import re
 
 ADMIN_ID = 184374602  # Замените на свой Telegram user_id
 
@@ -133,28 +134,38 @@ async def get_guide(callback: CallbackQuery):
 @router.callback_query(F.data == "appoint_mult_table")
 async def start_mult_table_appointment(callback: CallbackQuery, state):
     await state.set_state("mult_table_name")
-    await callback.message.answer("Ваше имя:")
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+    await callback.message.answer("Ваше имя:", reply_markup=cancel_kb.as_markup())
 
 @router.message(StateFilter("mult_table_name"))
 async def mult_table_name(message: Message, state):
     # Проверка: только буквы, минимум 2 символа
     if not re.match(r"^[А-Яа-яA-Za-zЁё\-\s]{2,}$", message.text.strip()):
-        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).")
+        cancel_kb = InlineKeyboardBuilder()
+        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+        await message.answer("Пожалуйста, введите корректное имя (только буквы, не менее 2 символов).", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(name=message.text.strip())
     await state.set_state("mult_table_phone")
-    await message.answer("Ваш контактный телефон:")
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+    await message.answer("Ваш контактный телефон:", reply_markup=cancel_kb.as_markup())
 
 @router.message(StateFilter("mult_table_phone"))
 async def mult_table_phone(message: Message, state):
     # Простейшая проверка на телефон (11 цифр, допускается +7, 8, пробелы, дефисы)
     phone = re.sub(r"[^0-9]", "", message.text)
     if not (10 <= len(phone) <= 12):
-        await message.answer("Пожалуйста, введите корректный номер телефона.")
+        cancel_kb = InlineKeyboardBuilder()
+        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+        await message.answer("Пожалуйста, введите корректный номер телефона.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(phone=message.text.strip())
     await state.set_state("mult_table_age")
-    await message.answer("Возраст ребенка (полных лет):")
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+    await message.answer("Возраст ребенка (полных лет):", reply_markup=cancel_kb.as_markup())
 
 @router.message(StateFilter("mult_table_age"))
 async def mult_table_age(message: Message, state):
@@ -164,11 +175,16 @@ async def mult_table_age(message: Message, state):
         if not (1 <= age < 25):
             raise ValueError
     except ValueError:
-        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.")
+        cancel_kb = InlineKeyboardBuilder()
+        cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
+        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(age=age)
     await state.set_state("mult_table_branch")
+    cancel_kb = InlineKeyboardBuilder()
+    cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
     await message.answer("Выберите удобный филиал в г. Москва:", reply_markup=mult_table_branches_keyboard())
+    await message.answer("Для отмены нажмите кнопку ниже.", reply_markup=cancel_kb.as_markup())
 
 @router.callback_query(StateFilter("mult_table_branch"), F.data.startswith("mult_branch_"))
 async def mult_table_branch(callback: CallbackQuery, state):
@@ -188,6 +204,15 @@ async def mult_table_branch(callback: CallbackQuery, state):
     )
     await state.clear()
 
+@router.callback_query(F.data == "cancel_form")
+async def cancel_form(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("Запись отменена.", reply_markup=main_menu_keyboard())
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
 # --- Админский режим ---
 @router.message(Command("admin"))
 async def admin_services(message: Message, state: FSMContext):
@@ -204,13 +229,13 @@ async def admin_services(message: Message, state: FSMContext):
     # Добавляем кнопки для всех услуг
     for service_key in service_details.keys():
         builder.add(InlineKeyboardButton(
-            text=service_key,
+            text=service_details[service_key].get("title", service_key),
             callback_data=f"admin_service_{service_key}"
         ))
     
     # Добавляем кнопку для онлайн-формата
     builder.add(InlineKeyboardButton(
-        text="online_details",
+        text="Онлайн-формат",
         callback_data="admin_service_online_details"
     ))
     
@@ -234,15 +259,15 @@ async def admin_choose_service(callback: CallbackQuery, state: FSMContext):
     
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(
-        text="Название (title)",
+        text="Название",
         callback_data="admin_field_title"
     ))
     builder.add(InlineKeyboardButton(
-        text="Изображение (image)",
+        text="Изображение",
         callback_data="admin_field_image"
     ))
     builder.add(InlineKeyboardButton(
-        text="Описание (desc)",
+        text="Описание",
         callback_data="admin_field_desc"
     ))
     builder.add(InlineKeyboardButton(
