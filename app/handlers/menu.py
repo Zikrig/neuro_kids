@@ -9,7 +9,8 @@ from aiogram.filters import Command, StateFilter
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import re
 
-ADMIN_ID = 184374602  # Замените на свой Telegram user_id
+# Список ID админов
+ADMIN_IDS = [184374602]
 
 router = Router()
 
@@ -104,19 +105,6 @@ async def contacts(callback: CallbackQuery):
     )
     await callback.message.edit_reply_markup(reply_markup=None)
 
-@router.callback_query(F.data == "info")
-async def useful_info(callback: CallbackQuery):
-    checklists = [f"data/checklist{i}.pdf" for i in range(1, 6)]
-    for checklist in checklists:
-        if os.path.exists(checklist):
-            await callback.message.answer_document(FSInputFile(checklist))
-        else:
-            await callback.message.answer(f"Файл {checklist} не найден.")
-    await callback.message.answer(
-        texts["info_prompt"],
-        reply_markup=main_menu_keyboard()
-    )
-    await callback.message.edit_reply_markup(reply_markup=None)
 
 @router.callback_query(F.data == "get_guide")
 async def get_guide(callback: CallbackQuery):
@@ -216,7 +204,7 @@ async def cancel_form(callback: CallbackQuery, state: FSMContext):
 # --- Админский режим ---
 @router.message(Command("admin"))
 async def admin_services(message: Message, state: FSMContext):
-    if message.from_user.id != ADMIN_ID:
+    if message.from_user.id not in ADMIN_IDS:
         await message.answer("Нет доступа.")
         return
     

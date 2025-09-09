@@ -12,7 +12,7 @@ router = Router()
 @router.callback_query(F.data == "services")
 async def show_services(callback: CallbackQuery):
     await callback.message.answer(
-        "<b>НАШИ УСЛУГИ И ЦЕНЫ</b>\n\nВыберите услугу:",
+        "<b>НАШИ УСЛУГИ И ЦЕНЫ</b>",
         reply_markup=services_keyboard(),
         parse_mode="HTML"
     )

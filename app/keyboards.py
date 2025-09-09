@@ -16,8 +16,10 @@ def main_menu_keyboard():
 def services_keyboard():
     builder = InlineKeyboardBuilder()
     for key, value in SERVICES.items():
+        # Исключаем онлайн и таблицу умножения из списка услуг для пользователей
+        if key in ["online", "mult_table"]:
+            continue
         builder.button(text=value.split(" - ", 1)[0], callback_data=f"service_{key}")
-    builder.button(text="ТАБЛИЦА УМНОЖЕНИЯ ЗА 5 ДНЕЙ", callback_data="service_mult_table")
     builder.button(text="↩️ Назад", callback_data="back_menu")
     builder.adjust(1)
     return builder.as_markup()
