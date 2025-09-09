@@ -169,15 +169,15 @@ async def mult_table_phone(message: Message, state):
 
 @router.message(StateFilter("mult_table_age"))
 async def mult_table_age(message: Message, state):
-    # Проверка: только число, 1-18
+    # Проверка: только число, 2-16
     try:
         age = int(message.text.strip())
-        if not (1 <= age < 18):
+        if not (2 <= age <= 16):
             raise ValueError
     except ValueError:
         cancel_kb = InlineKeyboardBuilder()
         cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
-        await message.answer("Пожалуйста, введите возраст от 1 до 17 лет.", reply_markup=cancel_kb.as_markup())
+        await message.answer("Пожалуйста, введите возраст от 2 до 16 лет.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(age=age)
     await state.set_state("mult_table_branch")

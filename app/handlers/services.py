@@ -94,10 +94,10 @@ async def process_age(message, state: FSMContext):
     cancel_kb.add(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_form"))
     try:
         age = int(message.text.strip())
-        if not (1 <= age < 25):
+        if not (2 <= age <= 16):
             raise ValueError
     except ValueError:
-        await message.answer("Пожалуйста, введите возраст от 1 до 24 лет.", reply_markup=cancel_kb.as_markup())
+        await message.answer("Пожалуйста, введите возраст от 2 до 16 лет.", reply_markup=cancel_kb.as_markup())
         return
     await state.update_data(age=age)
     await state.set_state(Form.branch)
