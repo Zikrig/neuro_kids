@@ -6,6 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import json
 import os
 from aiogram.types import FSInputFile
+from app.stats_manager import stats_manager
 
 router = Router()
 
@@ -13,6 +14,7 @@ APPOINT_URL = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common
 
 @router.callback_query(F.data == "online")
 async def online_development(callback: CallbackQuery, state: FSMContext):
+    stats_manager.increment("online")
     with open("data/service_details.json", encoding="utf-8") as f:
         data = json.load(f)
     details = data.get("online_details")

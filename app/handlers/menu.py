@@ -8,6 +8,8 @@ import json
 from aiogram.filters import Command, StateFilter
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import re
+from app.stats_manager import stats_manager
+from app.services import SERVICE_DETAILS
 
 # Список ID админов
 ADMIN_IDS = [184374602, 314344233]
@@ -52,6 +54,7 @@ texts = load_texts()
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
+    stats_manager.increment("start")
     if os.path.exists("data/image10.png"):
         await message.answer_photo(
             FSInputFile("data/image10.png"),
@@ -121,6 +124,7 @@ async def get_guide(callback: CallbackQuery):
 
 @router.callback_query(F.data == "appoint_mult_table")
 async def appoint_mult_table_link(callback: CallbackQuery, state: FSMContext):
+    stats_manager.increment("appoint_mult_table")
     from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
     APPOINT_URL = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
     builder = InlineKeyboardBuilder()
@@ -273,3 +277,33 @@ async def admin_back_to_services(callback: CallbackQuery, state: FSMContext):
 async def admin_cancel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text("Редактирование отменено.")
+
+@router.message(Command("stats"))
+async def show_stats(message: Message):
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Нет доступа.")
+        return
+    keys = ["start", "online", "appoint_mult_table"]
+    # Получаем все услуги и их title
+    try:
+        with open("data/service_details.json", encoding="utf-8") as f:
+            data = json.load(f)
+        service_dict = data.get("service_details", {})
+    except Exception:
+        service_dict = {}
+    lines = []
+    # Старт
+    stats = stats_manager.get_stats("start")
+    lines.append(f"<b>Старт</b>:\nСегодня: {stats['today']}\nНеделя: {stats['week']}\nВсего: {stats['total']}\n")
+    # Онлайн
+    stats = stats_manager.get_stats("online")
+    lines.append(f"<b>Онлайн развитие</b>:\nСегодня: {stats['today']}\nНеделя: {stats['week']}\nВсего: {stats['total']}\n")
+    # Таблица умножения
+    stats = stats_manager.get_stats("appoint_mult_table")
+    lines.append(f"<b>Таблица умножения</b>:\nСегодня: {stats['today']}\nНеделя: {stats['week']}\nВсего: {stats['total']}\n")
+    # Услуги
+    for key, val in service_dict.items():
+        stats = stats_manager.get_stats(f"service_{key}")
+        title = val.get("title", key)
+        lines.append(f"<b>{title}</b>:\nСегодня: {stats['today']}\nНеделя: {stats['week']}\nВсего: {stats['total']}\n")
+    await message.answer("\n".join(lines), parse_mode="HTML")

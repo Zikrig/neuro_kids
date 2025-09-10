@@ -7,6 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import json
 import os
 from aiogram.types import FSInputFile
+from app.stats_manager import stats_manager
 
 router = Router()
 
@@ -21,6 +22,7 @@ async def show_services(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("service_"))
 async def service_detail(callback: CallbackQuery, state: FSMContext):
     service_key = callback.data.split("_", 1)[1]
+    stats_manager.increment(f"service_{service_key}")
     with open("data/service_details.json", encoding="utf-8") as f:
         data = json.load(f)
     details = data.get("service_details", {}).get(service_key)
