@@ -10,7 +10,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import re
 
 # Список ID админов
-ADMIN_IDS = [184374602]
+ADMIN_IDS = [184374602, 314344233]
 
 router = Router()
 
@@ -121,9 +121,16 @@ async def get_guide(callback: CallbackQuery):
 
 @router.callback_query(F.data == "appoint_mult_table")
 async def appoint_mult_table_link(callback: CallbackQuery, state: FSMContext):
-    url = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
-    text = 'Для записи воспользуйтесь <a href="{}">формой</a>.'
-    await callback.message.answer(text.format(url), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+    APPOINT_URL = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(text="ЗАПИСАТЬСЯ", url=APPOINT_URL))
+    builder.add(InlineKeyboardButton(text="↩️ Назад", callback_data="back_menu"))
+    builder.adjust(1)
+    await callback.message.answer(
+        "Для записи воспользуйтесь кнопкой ниже:",
+        reply_markup=builder.as_markup()
+    )
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:
@@ -132,9 +139,9 @@ async def appoint_mult_table_link(callback: CallbackQuery, state: FSMContext):
 # --- Админский режим ---
 @router.message(Command("admin"))
 async def admin_services(message: Message, state: FSMContext):
-    # if message.from_user.id not in ADMIN_IDS:
-    #     await message.answer("Нет доступа.")
-    #     return
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Нет доступа.")
+        return
     
     service_data = load_service_data()
     service_details = service_data.get('service_details', {})

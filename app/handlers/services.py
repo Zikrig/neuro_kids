@@ -21,9 +21,10 @@ async def show_services(callback: CallbackQuery):
 async def service_detail(callback: CallbackQuery, state: FSMContext):
     service_key = callback.data.split("_", 1)[1]
     details = SERVICE_DETAILS.get(service_key)
-    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+    APPOINT_URL = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
     builder = InlineKeyboardBuilder()
-    builder.button(text="ЗАПИСАТЬСЯ", callback_data=f"appoint_{service_key}")
+    builder.add(InlineKeyboardButton(text="ЗАПИСАТЬСЯ", url=APPOINT_URL))
     builder.button(text="↩️ Назад", callback_data="services")
     builder.adjust(1)
     import os

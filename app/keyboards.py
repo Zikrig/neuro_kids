@@ -2,13 +2,15 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from .services import SERVICES, BRANCHES, MULT_TABLE_BRANCHES
 
+APPOINT_URL = "https://tsentrdetskoyneyropsikhologiialteravita.s20.online/common/3/form/draw?id=1&baseColor=205EDC&borderRadius=8&css=%2F%2Fcdn.alfacrm.pro%2Flead-form%2Fform.css"
+
 def main_menu_keyboard():
     buttons = [
         [InlineKeyboardButton(text="ПОЛУЧИТЬ ГАЙД ПО РАЗВИТИЮ РЕБЕНКА", callback_data="get_guide")],
         [InlineKeyboardButton(text="НАШИ УСЛУГИ И ЦЕНЫ", callback_data="services")],
         [InlineKeyboardButton(text="ОНЛАЙН РАЗВИТИЕ", callback_data="online")],
         [InlineKeyboardButton(text="ТАБЛИЦА УМНОЖЕНИЯ ЗА 5 ЗАНЯТИЙ", callback_data="service_mult_table")],
-        [InlineKeyboardButton(text="ЗАПИСАТЬСЯ НА КОНСУЛЬТАЦИЮ", callback_data="appointment")],
+        [InlineKeyboardButton(text="ЗАПИСАТЬСЯ НА КОНСУЛЬТАЦИЮ", url=APPOINT_URL)],
         [InlineKeyboardButton(text="КОНТАКТЫ", callback_data="contacts")]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
