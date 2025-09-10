@@ -70,11 +70,11 @@ async def cmd_start(message: Message):
 
 @router.callback_query(F.data == "get_guide")
 async def get_guide(callback: CallbackQuery):
-    guide_path = "data/guide.pdf"
+    guide_path = "data/Секреты_успешного_развития_от_нейропсихолога.pdf"
     if os.path.exists(guide_path):
         await callback.message.answer_document(FSInputFile(guide_path))
     else:
-        await callback.message.answer("Файл guide.pdf не найден.")
+        await callback.message.answer("Файл Секреты_успешного_развития_от_нейропсихолога.pdf не найден.")
     await callback.message.answer(
         texts["guide_prompt"],
         reply_markup=main_menu_keyboard()
@@ -111,11 +111,11 @@ async def contacts(callback: CallbackQuery):
 
 @router.callback_query(F.data == "get_guide")
 async def get_guide(callback: CallbackQuery):
-    guide_path = "data/guide.pdf"
+    guide_path = "data/Секреты_успешного_развития_от_нейропсихолога.pdf"
     if os.path.exists(guide_path):
         await callback.message.answer_document(FSInputFile(guide_path))
     else:
-        await callback.message.answer("Файл guide.pdf не найден.")
+        await callback.message.answer("Файл Секреты_успешного_развития_от_нейропсихолога.pdf не найден.")
     await callback.message.answer(
         texts["guide_prompt"],
         reply_markup=main_menu_keyboard()
